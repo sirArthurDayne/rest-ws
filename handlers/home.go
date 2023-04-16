@@ -30,6 +30,7 @@ func MeHandler(s server.Server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token, err := helpers.ValidateJwtAuthToken(s, w, r)
 		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		if claims, ok := token.Claims.(*models.AppClaims); ok && token.Valid {

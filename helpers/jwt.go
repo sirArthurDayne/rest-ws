@@ -11,11 +11,12 @@ import (
 
 func ValidateJwtAuthToken(s server.Server, w http.ResponseWriter, r *http.Request) (*jwt.Token, error) {
 	tokenString := strings.TrimSpace(r.Header.Get("Authorization"))
-	token, err := jwt.ParseWithClaims(tokenString, models.AppClaims{}, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &models.AppClaims{}, func(t *jwt.Token) (interface{}, error) {
 		return []byte(s.Config().JwtSecret), nil
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
+        return nil, err
 	}
 	return token, nil
 }
