@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/sirArthurDayne/rest-ws/database"
+	"github.com/sirArthurDayne/rest-ws/repository"
 )
 
 type ServerConfig struct {
@@ -30,6 +32,7 @@ func (b *Broker) Config() *ServerConfig {
 }
 
 func NewServer(ctx context.Context, config *ServerConfig) (*Broker, error) {
+    //error checking for serverconfig
 	if config.Port == "" {
 		return nil, errors.New("[ERROR]: Port is required")
 	}
@@ -39,6 +42,7 @@ func NewServer(ctx context.Context, config *ServerConfig) (*Broker, error) {
 	if config.DatabaseUrl == "" {
 		return nil, errors.New("[ERROR]: DatabaseUrl is required")
 	}
+    //make broker
 	broker := &Broker{
 		config: config,
 		router: mux.NewRouter(),
@@ -47,10 +51,19 @@ func NewServer(ctx context.Context, config *ServerConfig) (*Broker, error) {
 }
 
 func (b *Broker) Start(binder func(s Server, router *mux.Router)) {
+    //create router and bind Handlers
 	b.router = mux.NewRouter()
 	binder(b, b.router)
-	log.Println("Starting server on port ", b.Config().Port)
-	if err := http.ListenAndServe(b.Config().Port, b.router); err != nil {
+    //set DB repository
+	repo, err := database.NewPostgresRepository(b.config.DatabaseUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+	repository.SetRepository(repo)
+
+    //initialize server
+	log.Println("Starting server on port ", b.config.Port)
+	if err := http.ListenAndServe(b.config.Port, b.router); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }
