@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/segmentio/ksuid"
@@ -28,12 +30,25 @@ func InserPostHandler(s server.Server) http.HandlerFunc {
 			return
 		}
 		if claims, ok := token.Claims.(*models.AppClaims); ok && token.Valid {
-			// decode json post request
+			// decode and validate post request before writing to DB
 			postRequest := PostRequest{}
-			if err := json.NewDecoder(r.Body).Decode(&postRequest); err != nil {
+			body, err := io.ReadAll(r.Body)
+			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
+			defer func() {
+				err = r.Body.Close()
+				if err != nil {
+					fmt.Println(err)
+				}
+			}()
+			jsonErr := json.Unmarshal(body, &postRequest)
+			if jsonErr != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
 			// generate random id for post
 			id, err := ksuid.NewRandom()
 			if err != nil {

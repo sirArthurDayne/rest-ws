@@ -9,7 +9,7 @@ import (
 )
 
 var NO_AUTH_NEEDED = []string{
-	"signup", "login",
+	"/", "signup", "login",
 }
 
 func shouldCheckToken(route string) bool {
