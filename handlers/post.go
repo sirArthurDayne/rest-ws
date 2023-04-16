@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/segmentio/ksuid"
 	"github.com/sirArthurDayne/rest-ws/helpers"
 	"github.com/sirArthurDayne/rest-ws/models"
@@ -79,5 +80,23 @@ func InserPostHandler(s server.Server) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+	}
+}
+
+func GetPostByIdHandler(s server.Server) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		params := mux.Vars(r)
+		post, err := repository.GetPostById(r.Context(), params["id"])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// check post ID exits
+		if len(post.Id) == 0 {
+			http.Error(w, "post not found", http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(post)
 	}
 }

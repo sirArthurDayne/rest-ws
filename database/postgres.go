@@ -85,6 +85,33 @@ func (repo *PostgresRepository) GetUserByEmail(ctx context.Context, email string
 	return &user, nil
 }
 
+func (repo *PostgresRepository) GetPostById(ctx context.Context, id string) (*models.Post, error) {
+	postRow, err := repo.db.QueryContext(ctx, "SELECT id, post_content, user_id, created_at FROM posts WHERE id = $1;", id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		err = postRow.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	post := models.Post{}
+
+	for postRow.Next() {
+		if err = postRow.Scan(&post.Id, &post.PostContent, &post.UserId, &post.CreatedAt); err == nil {
+			return &post, nil
+		}
+	}
+
+	if err = postRow.Err(); err != nil {
+		return nil, err
+	}
+	return &post, nil
+}
+
 func (repo *PostgresRepository) Close() error {
 	return repo.db.Close()
 }
