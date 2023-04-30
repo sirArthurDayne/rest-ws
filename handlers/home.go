@@ -17,12 +17,13 @@ type HomeResponse struct {
 
 func HomeHandler(s server.Server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(HomeResponse{
-			Message: "Welcome to REST Server",
-			Status:  "OK",
-		})
+        http.ServeFile(w,r, "frontend/index.html")
+		w.Header().Set("Content-Type", "text/html")
+		// json.NewEncoder(w).Encode(HomeResponse{
+		// 	Message: "Welcome to REST Server",
+		// 	Status:  "OK",
+		// })
 	}
 }
 
