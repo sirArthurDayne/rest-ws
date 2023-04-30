@@ -77,7 +77,7 @@ func (b *Broker) Start(binder func(s Server, router *mux.Router)) {
 	repository.SetRepository(repo)
 	// initialize server
 	log.Println("Starting server on port ", b.config.Port)
-	if err := http.ListenAndServe(b.config.Port, handler); err != nil {
+    if err := http.ListenAndServe("0.0.0.0" + b.config.Port, handler); err != nil {
 		log.Fatal("[ERROR] cannot starte server: ", err)
 	} else {
         log.Fatal("[ERROR] server stopped!")

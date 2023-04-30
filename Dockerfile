@@ -22,6 +22,7 @@ FROM scratch AS runner
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 COPY .env ./
+COPY frontend/ ./frontend/
 
 COPY --from=builder /rest-ws /rest-ws
 
