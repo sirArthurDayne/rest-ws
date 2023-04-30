@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/segmentio/ksuid"
@@ -73,6 +74,12 @@ func InserPostHandler(s server.Server) http.HandlerFunc {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			postMessage := models.WebsocketMessage{
+				Type:    "Post_created",
+				Payload: postObj,
+			}
+			// Broadcast to all nodes
+			s.Hub().Broadcast(postMessage, nil)
 			// send json response
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(PostResponse{
@@ -184,5 +191,27 @@ func DeletePostHandler(s server.Server) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+	}
+}
+
+func ListPostHandler(s server.Server) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error
+		pageStr := r.URL.Query().Get("page")
+		page := uint64(0)
+		if pageStr != "" {
+			page, err = strconv.ParseUint(pageStr, 10, 64)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+		}
+		posts, err := repository.ListPosts(r.Context(), page)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(posts)
 	}
 }
