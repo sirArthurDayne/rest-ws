@@ -78,6 +78,8 @@ func (b *Broker) Start(binder func(s Server, router *mux.Router)) {
 	// initialize server
 	log.Println("Starting server on port ", b.config.Port)
 	if err := http.ListenAndServe(b.config.Port, handler); err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
+		log.Fatal("[ERROR] cannot starte server: ", err)
+	} else {
+        log.Fatal("[ERROR] server stopped!")
+    }
 }
